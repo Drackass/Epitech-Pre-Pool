@@ -42,6 +42,14 @@ def lerp(a,b,amount): # return the interpolation between two point
 def get_font(size): # Returns Press-Start-2P font in the desired size
     return pygame.font.Font(Pathfont, size)
 
+# hides all Frame except the selected one
+def ShowCorrectFrame(Sprites,index):
+    for i, Frame in enumerate(Sprites):
+        if i == index:
+            Frame.set_alpha(255)  # Rendre l'image visible
+        else:
+            Frame.set_alpha(0)  # Rendre l'image invisible
+
 
 # init
 pygame.init()
@@ -59,12 +67,16 @@ pygame.display.set_icon(pygame_icon)
 # root title
 pygame.display.set_caption(rootTitle)
 
+# Event to change the frame
+CHANGE_IMAGE_EVENT = pygame.USEREVENT + 1
+pygame.time.set_timer(CHANGE_IMAGE_EVENT, 100)
+curIndex = 0
+
 # pick random word
 word = data.words[random.randint(0,len(data.words))-1]
 
+# Create a list of letters
 letters = []
-score = 0
-# Create the list
 for letter in word:
     letters.append((letter, False))
 
@@ -72,37 +84,19 @@ for letter in word:
 letters[0] = (letters[0][0], True)
 letters[-1] = (letters[-1][0], True)
 
+# show all spaces
 for i, (caractere, truth) in enumerate(letters):
     if caractere == " ":
         letters[i] = (caractere, True)
 
 
-
-
-# Création d'une liste pour stocker les images
-images = []
-
-# Chargement des images dans la liste
-for index in range(1, 13):
-    nom_image = f"assets\\sans\\{index}.gif"
-    image = pygame.image.load(nom_image)
-    images.append(image)
-
-# Fonction pour rendre invisible toutes les images sauf celle avec l'index spécifié
-def rendre_visible(index):
-    for i, image in enumerate(images):
-        if i == index:
-            image.set_alpha(255)  # Rendre l'image visible
-        else:
-            image.set_alpha(0)  # Rendre l'image invisible
-
-# Événement pour changer l'image à intervalles réguliers
-CHANGE_IMAGE_EVENT = pygame.USEREVENT + 1
-pygame.time.set_timer(CHANGE_IMAGE_EVENT, 100)  # Changer l'image toutes les 0.5 secondes
-
-
-# Boucle de jeu
-current_index = 0  # Index de l'image actuellement visible
+# Sprite
+# sans 
+SpriteSans = [pygame.image.load(f"assets\\sans\\{index}.gif") for index in range(0, 13)]
+# sans dance
+SpriteSansDance = [pygame.image.load(f"assets\\sans-dance\\{index}.gif") for index in range(0, 14)]
+# sans shrug
+SpriteSansShrug = [pygame.image.load(f"assets\\sans-shrug\\{index}.gif") for index in range(0, 13)]
 
 
 # cursor
@@ -133,6 +127,7 @@ pygame.mixer.Sound.play(pygame.mixer.Sound(PathStartSFX))
 
 win = False
 lose = False
+
 # assets\\sans\\
 while True:
     for event in pygame.event.get():
@@ -140,7 +135,7 @@ while True:
             pygame.quit()
 
         elif event.type == CHANGE_IMAGE_EVENT:
-            current_index = (current_index + 1) % len(images)  # Passer à l'image suivante, revenir à 0 si la limite est atteinte
+            curIndex = (curIndex + 1) % len(SpriteSans)  # Passer à l'image suivante, revenir à 0 si la limite est atteinte
 
         elif event.type == pygame.KEYDOWN:
             # Vérifier si une touche de lettre a été appuyée
@@ -188,9 +183,9 @@ while True:
 
         # Sans
         # Contrôlez la visibilité des images
-        rendre_visible(current_index)
+        ShowCorrectFrame(SpriteSans,curIndex)
         root.fill((0, 0, 0))
-        root.blit(images[current_index], (465, 90))
+        root.blit(SpriteSans[curIndex], (465, 90))
         pygame.display.flip()
 
         # Title
