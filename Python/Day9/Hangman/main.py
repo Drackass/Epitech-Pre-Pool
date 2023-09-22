@@ -230,8 +230,6 @@ def main():
         ShowCorrectFrame(SpriteSans,curIndex)
         root.blit(SpriteSans[curIndex], (465, 90))
 
-
-
         # HQ Bar
         b = (score*610)/10
         a = lerp(a,b,amount)
@@ -241,8 +239,6 @@ def main():
         displayDecor(display_word(letters),alert,"White",(640, 570))
 
         shake /= 1.1
-
-
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
