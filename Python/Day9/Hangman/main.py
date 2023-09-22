@@ -50,6 +50,39 @@ def ShowCorrectFrame(Sprites,index):
         else:
             Frame.set_alpha(0)  # Rendre l'image invisible
 
+CHANGE_IMAGE_EVENT = 0
+# Function to set the speed of sprite
+def setTimeSprite(Time):
+    global CHANGE_IMAGE_EVENT
+    CHANGE_IMAGE_EVENT = pygame.USEREVENT + 1
+    pygame.time.set_timer(CHANGE_IMAGE_EVENT, Time)
+
+def getCurTimeSprite():
+    global CHANGE_IMAGE_EVENT
+    return CHANGE_IMAGE_EVENT
+
+def displayDecor(word,alertText,alertColor,alertCoord):
+        
+        # Title
+        PLAY_TEXT = get_font(45).render("HANGMAN", True, "White")
+        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 40))
+        root.blit(PLAY_TEXT, PLAY_RECT)
+        
+        # alert
+        PLAY_TEXT = get_font(25).render(alertText, True, alertColor)
+        PLAY_RECT = PLAY_TEXT.get_rect(center=alertCoord)
+        root.blit(PLAY_TEXT, PLAY_RECT)
+        
+        # Letter
+        PLAY_TEXT = get_font(70).render(word, True, "White")
+        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 670))
+        root.blit(PLAY_TEXT, PLAY_RECT)
+
+        # TV
+        bg = pygame.image.load(PathOldTV)
+        bg = pygame.transform.scale(bg, (1280, 720))
+        root.blit(bg, (0, 0))
+    
 # init
 pygame.init()
 
@@ -66,11 +99,10 @@ pygame.display.set_icon(pygame_icon)
 # root title
 pygame.display.set_caption(rootTitle)
 
-# Event to change the frame
-CHANGE_IMAGE_EVENT = pygame.USEREVENT + 1
-pygame.time.set_timer(CHANGE_IMAGE_EVENT, 100)
-
 # Sprite
+# heart 
+Spriteintro = [pygame.image.load(f"assets\\intro\\{index}.gif") for index in range(0, 53)]
+
 # sans 
 SpriteSans = [pygame.image.load(f"assets\\sans\\{index}.gif") for index in range(0, 13)]
 # sans dance
@@ -78,38 +110,45 @@ SpriteSansDance = [pygame.image.load(f"assets\\sans-dance\\{index}.gif") for ind
 # sans shrug
 SpriteSansShrug = [pygame.image.load(f"assets\\sans-shrug\\{index}.gif") for index in range(0, 13)]
 
+# music
 music = pygame.mixer.music.load(PathMusic)
-pygame.mixer.music.play(-1)
-pygame.mixer.Sound.play(pygame.mixer.Sound(PathStartSFX))
 
-def win(word):
+def intro():
+    setTimeSprite(60)
     curIndex = 0
 
     while True:
         root.fill("black")
 
-        # Title
-        PLAY_TEXT = get_font(45).render("HANGMAN", True, "White")
-        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 40))
-        root.blit(PLAY_TEXT, PLAY_RECT)
+        ShowCorrectFrame(Spriteintro,curIndex)
+        root.blit(Spriteintro[curIndex], (50, 0))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                # sys.exit()
+            elif event.type == CHANGE_IMAGE_EVENT:
+                if curIndex < len(Spriteintro)-1:
+                    curIndex = curIndex + 1
+                else:
+                    pygame.mixer.music.play(-1)
+                    main()
+
+        pygame.display.update()
+
+def win(word):
+    
+    curIndex = 0
+    pygame.mixer.Sound.play(pygame.mixer.Sound(PathStartSFX))
+
+    while True:
+        root.fill("black")
 
         # Sprite
         ShowCorrectFrame(SpriteSansDance,curIndex)
-        root.blit(SpriteSansDance[curIndex], (390, 50))
+        root.blit(SpriteSansDance[curIndex], (390, 60))
 
-        PLAY_TEXT = get_font(25).render("Vivtory!", True, "orange")
-        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 600))
-        root.blit(PLAY_TEXT, PLAY_RECT)
-
-        # Letter
-        PLAY_TEXT = get_font(70).render(word, True, "White")
-        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 670))
-        root.blit(PLAY_TEXT, PLAY_RECT)
-
-        # TV
-        bg = pygame.image.load(PathOldTV)
-        bg = pygame.transform.scale(bg, (1280, 720))
-        root.blit(bg, (0, 0))
+        displayDecor(word,"you win, the word was:","orange",(640, 600))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -128,28 +167,11 @@ def lose(word):
     while True:
         root.fill("black")
 
-        # Title
-        PLAY_TEXT = get_font(45).render("HANGMAN", True, "White")
-        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 40))
-        root.blit(PLAY_TEXT, PLAY_RECT)
-
         # Sprite
         ShowCorrectFrame(SpriteSansShrug,curIndex)
         root.blit(SpriteSansShrug[curIndex], (385, 70))
 
-        PLAY_TEXT = get_font(25).render("you lose, the word was:", True, "red")
-        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 600))
-        root.blit(PLAY_TEXT, PLAY_RECT)
-
-        # Letter
-        PLAY_TEXT = get_font(70).render(word, True, "White")
-        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 670))
-        root.blit(PLAY_TEXT, PLAY_RECT)
-
-        # TV
-        bg = pygame.image.load(PathOldTV)
-        bg = pygame.transform.scale(bg, (1280, 720))
-        root.blit(bg, (0, 0))
+        displayDecor(word,"you lose, the word was:","red",(640, 600))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -160,10 +182,11 @@ def lose(word):
             elif event.type == pygame.KEYDOWN:
                 main() 
 
-
         pygame.display.update()
 
 def main():
+    setTimeSprite(100)
+
     # pick random word
     word = data.words[random.randint(0,len(data.words))-1]
 
@@ -195,38 +218,31 @@ def main():
     letterUsed = []
     alert = "Enter a Letter :"
 
+    shake = 0
+
     while True:
         root.fill("black")
 
-        # Title
-        PLAY_TEXT = get_font(45).render("HANGMAN", True, "White")
-        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 40))
-        root.blit(PLAY_TEXT, PLAY_RECT)
+        x = random.uniform(-shake, shake)
+        y = random.uniform(-shake, shake)
 
         # Sprite
         ShowCorrectFrame(SpriteSans,curIndex)
         root.blit(SpriteSans[curIndex], (465, 90))
 
-        # alert
-        PLAY_TEXT = get_font(25).render(alert, True, "white")
-        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 570))
-        root.blit(PLAY_TEXT, PLAY_RECT)
+
 
         # HQ Bar
         b = (score*610)/10
         a = lerp(a,b,amount)
-        pygame.draw.rect(root, "red", pygame.Rect(350, 595, 600, 20))
-        pygame.draw.rect(root, "green", pygame.Rect(350, 595, a, 20))
+        pygame.draw.rect(root, "red", pygame.Rect(350+x, 595+y, 600, 20))
+        pygame.draw.rect(root, "green", pygame.Rect(350+x, 595+y, a, 20))
 
-        # Letter
-        PLAY_TEXT = get_font(70).render(display_word(letters), True, "White")
-        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 670))
-        root.blit(PLAY_TEXT, PLAY_RECT)
+        displayDecor(display_word(letters),alert,"White",(640, 570))
 
-        # TV
-        bg = pygame.image.load(PathOldTV)
-        bg = pygame.transform.scale(bg, (1280, 720))
-        root.blit(bg, (0, 0))
+        shake /= 1.1
+
+
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -263,6 +279,7 @@ def main():
                             score -= 1
                             alert =f"No '{playerInput}' found"     
                             pygame.mixer.Sound.play(pygame.mixer.Sound(PathBadSFX))   
+                            shake = 10
                     currentWord = display_word(letters)
 
                     if "_" not in currentWord:
@@ -276,4 +293,4 @@ def main():
                 
         pygame.display.update()
 
-main()
+intro()
